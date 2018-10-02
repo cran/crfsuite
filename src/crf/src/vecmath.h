@@ -46,9 +46,13 @@
 #include <stdlib.h>
 static inline void *_aligned_malloc(size_t size, size_t alignment)
 {
+  #if defined(__sun) || defined(sun)
+    return memalign(alignment, size);
+  #else
     void *p;
     int ret = posix_memalign(&p, alignment, size);
     return (ret == 0) ? p : 0;
+  #endif
 }
 static inline void _aligned_free(void *p)
 {

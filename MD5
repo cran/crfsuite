@@ -1,8 +1,8 @@
-3a36b81956cc59ea8729a31fbcf347bd *DESCRIPTION
+0079a856f3baa83748f327e675f6c4af *DESCRIPTION
 252b2f5c6e577e65c21c9d632c3a8324 *LICENSE
 a962ddc601de43388db339cc995c1daa *LICENSE.note
 5434aee1713fe34126e9eb5da53d3558 *NAMESPACE
-dc2e278bdcc3fc7273947771ee2ced42 *NEWS.md
+519901c5445fe06ad4dabc819a3f3f8c *NEWS.md
 c97a849cb5bf4679a686f45295c1e4b8 *R/RcppExports.R
 75cb805d9e1d7901c9249611abecf93e *R/data.R
 54028c5298c0260882f80ce55f9fe644 *R/feature_engineering.R
@@ -18,7 +18,7 @@ cfc5970fb89e76bfa520e188892d116c *data/airbnb_chunks.RData
 746d3006e6d16a3ceb9635af99e6fe4a *inst/app/annotation.Rmd
 214c871a9c414fe5fe45c6515c2aac49 *inst/doc/crfsuite-nlp.R
 761d784baeeb8fd52e12472f8ac1630c *inst/doc/crfsuite-nlp.Rmd
-f18895ce9dc602d7eacd4d21dcbbbcdd *inst/doc/crfsuite-nlp.html
+dc2230580f3c36f6b2ea169f0cec5ad3 *inst/doc/crfsuite-nlp.html
 6a2b3e733e44f1c663742894c959d821 *man/airbnb.Rd
 9975763921d0e158ce75941f02d7ff54 *man/airbnb_chunks.Rd
 581f7b3ed8bab9f3add742ee3e58d2f5 *man/as.crf.Rd
@@ -59,7 +59,7 @@ b188898caa95a1972c87dd1aa2704936 *src/crf/src/train_averaged_perceptron.c
 99016d2399ae9b9806f3deb8de56f2bc *src/crf/src/train_l2sgd.c
 80a1a1bce1b48bcc8a8b7f1b1c6e9f25 *src/crf/src/train_lbfgs.c
 1b5c83df847ef1eec09529d191939bed *src/crf/src/train_passive_aggressive.c
-a200e92e42972ccb75b6c9ea96047f22 *src/crf/src/vecmath.h
+fa6eccf66ce8248bacd547483719bcf2 *src/crf/src/vecmath.h
 cb59bcce41003a584225df6315ef9dd6 *src/include/crfsuite.h
 f653bb408617c8f611286bb8c076077a *src/include/crfsuite.hpp
 1775900af8802195180d44e05161c850 *src/include/crfsuite_api.hpp
