@@ -34,6 +34,10 @@ tags$script('
   }
   document.onmouseup = document.onkeyup = document.onselectionchange = function() {
     var selection = getSelectionText();
+    var ui_txt_id = document.getElementById("ui_txt");
+    //var ui_txt_text = ui_txt_id.innerText;
+    var ui_txt_text = ui_txt_id.textContent;
+    Shiny.onInputChange("visible_text", ui_txt_text);
     Shiny.onInputChange("highlighted_text", selection.text);
     Shiny.onInputChange("highlighted_offset", selection.offset);
   };
@@ -42,8 +46,11 @@ dashdata <- list()
 dashdata$file <- "default"
 dashdata$save_as <- tempfile(pattern = sprintf("crfsuite_annotation_%s", format(Sys.time(), "%Y%m%d_%H%M%S")), fileext = ".rds")
 dashdata$categories <- c("OTHER")
-dashdata$rawdata <- data.frame(doc_id = c("introduction", "example"), text = c("<b>This tool allows to easily annnote parts of plain text in categories. Why?</b> <ul><li>In order to facilitate getting a training dataset for using the crfsuite R package</li><li>To allow to easily build statistical models for named entitiy recognition, chunking, parsing or intent classification</li></ul><b>How to annotate?</b><ol><li>Select a part of the text, indicate which category your selection belongs to and press save. </li><li>Done? Press 'annotate another document' or go to the tab 'upload new set of documents' to provide your dataset to tag.</li></ol>Start trying this out by providing a list of categories in the tab 'Manage tagging categories', press on 'annotate another document' and try it out. Once done, upload your own set of documents to tag in the tab 'Upload new set of documents'", '
-The standard Lorem Ipsum passage, used since the 1500s
+dashdata$rawdata <- data.frame(doc_id = c("introduction", "example"), text = c(
+"This tool allows to easily annnote parts of plain text with categories. Why?\n   o In order to facilitate getting a training dataset for constructing models with the crfsuite R package\n   o To allow to easily build statistical models for named entity recognition, chunking, parsing or intent classification\n\nHow to annotate?\n   o Select a part of the text, indicate which category your selection belongs to and press save.\n   o Done? Press 'Annotate another document' or go to the tab 'upload new set of documents' to provide your dataset to tag.\n\nStart trying this out by providing a list of categories in the tab 'Manage tagging categories', press on 'Annotate another document' and try it out. Once done, upload your own set of documents to tag in the tab 'Upload new set of documents'",
+
+#"<b>This tool allows to easily annnote parts of plain text with categories. Why?</b> <ul><li>In order to facilitate getting a training dataset for constructing models with the crfsuite R package</li><li>To allow to easily build statistical models for named entity recognition, chunking, parsing or intent classification</li></ul><b>How to annotate?</b><ol><li>Select a part of the text, indicate which category your selection belongs to and press save. </li><li>Done? Press 'Annotate another document' or go to the tab 'upload new set of documents' to provide your dataset to tag.</li></ol>Start trying this out by providing a list of categories in the tab 'Manage tagging categories', press on 'Annotate another document' and try it out. Once done, upload your own set of documents to tag in the tab 'Upload new set of documents'", 
+'The standard Lorem Ipsum passage, used since the 1500s
 
 "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum."
 Section 1.10.32 of "de Finibus Bonorum et Malorum", written by Cicero in 45 BC
@@ -74,13 +81,13 @@ save_annotation <- function(result){
     }
     out <- rbind(out, data.frame(result, stringsAsFactors = FALSE))
     out$chunk_id <- seq_len(nrow(out))
-    out <- out[, c("annotation_time", "doc_id", "text", "start", "end", "chunk_id", "chunk_entity", "chunk")]
+    out <- out[, c("annotation_time", "doc_id", "text", "text_visible", "start", "end", "chunk_id", "chunk_entity", "chunk")]
     class(out) <- c("chunkrange", "data.frame")
     saveRDS(out, file = dashdata$save_as)
   }else{
     out <- data.frame(result, stringsAsFactors = FALSE)
     out$chunk_id <- seq_len(nrow(out))
-    out <- out[, c("annotation_time", "doc_id", "text", "start", "end", "chunk_id", "chunk_entity", "chunk")]
+    out <- out[, c("annotation_time", "doc_id", "text", "text_visible", "start", "end", "chunk_id", "chunk_entity", "chunk")]
     class(out) <- c("chunkrange", "data.frame")
     saveRDS(out, file = dashdata$save_as)
   }
@@ -108,6 +115,7 @@ currentText <- reactive({
   result <- list(annotation_time = Sys.time(), 
                doc_id = info$doc_id,
                text = info$text,
+               text_visible = info$text,
                start = NA_integer_,
                end = NA_integer_,
                chunk_id = NA_integer_,
@@ -150,7 +158,7 @@ actionButton(inputId = "ui_save", label = "Save")
 ### Annotate
 
 ```{r}
-htmlOutput("ui_txt")
+textOutput("ui_txt")
 tags$style(type="text/css", "#ui_txt {white-space: pre-wrap; overflow-y: auto;}")
 output$ui_txt <- renderText({
   input$ui_save
@@ -167,6 +175,7 @@ observeEvent(input$ui_save, {
   result <- list(annotation_time = Sys.time(), 
                doc_id = info$doc_id,
                text = info$text,
+               text_visible = input$visible_text,
                start = start,
                end = end,
                chunk_id = NA_integer_,

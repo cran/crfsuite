@@ -2,7 +2,7 @@ Package: crfsuite
 Type: Package
 Title: Conditional Random Fields for Labelling Sequential Data in
         Natural Language Processing
-Version: 0.2
+Version: 0.3
 Maintainer: Jan Wijffels <jwijffels@bnosac.be>
 Authors@R: c(
     person('Jan', 'Wijffels', role = c('aut', 'cre', 'cph'), email = 'jwijffels@bnosac.be', comment = "R wrapper"), 
@@ -17,15 +17,15 @@ Description: Wraps the 'CRFsuite' library <https://github.com/chokkan/crfsuite> 
     for named entity recognition, text chunking, part of speech tagging, intent recognition or classification of any category you have in mind. Next to training, a small web application
     is included in the package to allow you to easily construct training data.
 License: BSD_3_clause + file LICENSE
+URL: https://github.com/bnosac/crfsuite
 Depends: R (>= 2.10)
-Imports: Rcpp, data.table (>= 1.9.6), utils, tools
+Imports: Rcpp, data.table (>= 1.9.6), utils, tools, stats
 Suggests: udpipe, knitr
 LinkingTo: Rcpp
 RoxygenNote: 6.0.1
-SystemRequirements: GNU make
 VignetteBuilder: knitr
 NeedsCompilation: yes
-Packaged: 2018-10-21 20:51:33 UTC; Jan
+Packaged: 2019-05-31 10:54:24 UTC; Jan
 Author: Jan Wijffels [aut, cre, cph] (R wrapper),
   BNOSAC [cph] (R wrapper),
   Naoaki Okazaki [aut, ctb, cph] (CRFsuite library (BSD licensed),
@@ -35,4 +35,4 @@ Author: Jan Wijffels [aut, cre, cph] (R wrapper),
   Jorge Nocedal [aut, ctb, cph] (libLBFGS library (MIT licensed)),
   Jesse Long [aut, ctb, cph] (RumAVL library (MIT licensed))
 Repository: CRAN
-Date/Publication: 2018-10-21 22:00:03 UTC
+Date/Publication: 2019-05-31 13:00:08 UTC

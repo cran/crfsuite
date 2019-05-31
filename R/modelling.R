@@ -32,34 +32,44 @@
 #' @references More details about this model is available at \url{http://www.chokkan.org/software/crfsuite}.
 #' @export
 #' @seealso \code{\link{predict.crf}}
-#' @examples 
-#' ##
-#' ## Build Named Entity Recognition model on tiny - 10 docs subset of conll2002-nl
-#' ##
-#' x         <- ner_download_modeldata("conll2002-nl", docs = 10)
-#' x$pos     <- txt_sprintf("Parts of Speech: %s", x$pos)
-#' x$token   <- txt_sprintf("Token: %s", x$token)
-#' crf_train <- subset(x, data == "ned.train")
-#' crf_test  <- subset(x, data == "testa")
+#' @examples
+#' ## Download modeldata (conll 2002 shared task in Dutch)
+#' \dontrun{
+#' x         <- ner_download_modeldata("conll2002-nl")
+#' }
+#' # for CRAN only - word on a subset of the data
+#' x <- ner_download_modeldata("conll2002-nl", docs = 10)
+#' if(is.data.frame(x)){
+#'   ##
+#'   ## Build Named Entity Recognition model on conll2002-nl
+#'   ##
+#'   x$pos     <- txt_sprintf("Parts of Speech: %s", x$pos)
+#'   x$token   <- txt_sprintf("Token: %s", x$token)
+#'   crf_train <- subset(x, data == "ned.train")
+#'   crf_test  <- subset(x, data == "testa")
 #' 
-#' model <- crf(y = crf_train$label, 
-#'              x = crf_train[, c("token", "pos")], 
-#'              group = crf_train$doc_id, 
-#'              method = "lbfgs", 
-#'              options = list(max_iterations = 3, feature.minfreq = 5, c1 = 0, c2 = 1)) 
-#' model
-#' stats <- summary(model, "modeldetails.txt")
-#' stats
-#' plot(stats$iterations$loss)
+#'   model <- crf(y = crf_train$label, 
+#'                x = crf_train[, c("token", "pos")], 
+#'                group = crf_train$doc_id, 
+#'                method = "lbfgs", 
+#'                options = list(max_iterations = 3, feature.minfreq = 5, 
+#'                               c1 = 0, c2 = 1)) 
+#'   model
+#'   stats <- summary(model, "modeldetails.txt")
+#'   stats
+#'   plot(stats$iterations$loss)
 #' 
-#' ## Use the CRF model to label a sequence
-#' scores <- predict(model, 
-#'                   newdata = crf_test[, c("token", "pos")], 
-#'                   group = crf_test$doc_id)
-#' head(scores)
-#' crf_test$label <- scores$label
-#' 
-#' 
+#'   ## Use the CRF model to label a sequence
+#'   scores <- predict(model, 
+#'                     newdata = crf_test[, c("token", "pos")], 
+#'                     group = crf_test$doc_id)
+#'   head(scores)
+#'   crf_test$label <- scores$label
+#'   
+#'   ## cleanup for CRAN
+#'   if(file.exists(model$file_model)) file.remove(model$file_model)
+#'   if(file.exists("modeldetails.txt")) file.remove("modeldetails.txt")
+#' }
 #' \dontrun{
 #' ##
 #' ## More detailed example where text data was annotated with the webapp in the package
@@ -68,13 +78,10 @@
 #' ##
 #' library(udpipe)
 #' data(airbnb_chunks, package = "crfsuite")
-#' udmodel <- udpipe_download_model("dutch-lassysmall")
-#' udmodel <- udpipe_load_model(udmodel$file_model)
-#' airbnb_tokens <- unique(airbnb_chunks[, c("doc_id", "text")])
-#' airbnb_tokens <- udpipe_annotate(udmodel, 
-#'                                  x = airbnb_tokens$text, 
-#'                                  doc_id = airbnb_tokens$doc_id)
-#' airbnb_tokens <- as.data.frame(airbnb_tokens)
+#' udmodel       <- udpipe_download_model("dutch-lassysmall")
+#' udmodel       <- udpipe_load_model(udmodel$file_model)
+#' airbnb_tokens <- udpipe(x = unique(airbnb_chunks[, c("doc_id", "text")]), 
+#'                         object = udmodel)
 #' x <- merge(airbnb_chunks, airbnb_tokens)
 #' x <- crf_cbind_attributes(x, terms = c("upos", "lemma"), by = "doc_id")
 #' model <- crf(y = x$chunk_entity, 
@@ -88,12 +95,7 @@
 #'                   newdata = x[, grep("upos|lemma", colnames(x))], 
 #'                   group = x$doc_id)
 #' head(scores)
-#' 
-#' ## cleanup for CRAN
-#' file.remove(udmodel$file)
 #' }
-#' file.remove(model$file_model)
-#' file.remove("modeldetails.txt")
 crf <- function(x, y, group, 
                 method = c("lbfgs", "l2sgd", "averaged-perceptron", "passive-aggressive", "arow"), 
                 options = crf_options(method)$default, 
@@ -332,3 +334,116 @@ crf_options <- function(method = c("lbfgs", "l2sgd", "averaged-perceptron", "pas
 }
 
 
+#' @title Functionality allowing to tune a crfsuite model using caret
+#' @description The object \code{crf_caretmethod} contains functionality to tune a crf model using caret.
+#' Each list elment of \code{crf_caretmethod} is a list of functions 
+#' which can be passed on to the \code{method} argument of \code{caret::train} to tune the hyperparameters of the crfsuite model.
+#' @export 
+#' @rdname crf_caretmethod
+#' @format see details
+#' @details If you want to tune the hyperparameters of a crfsuite model 
+#' (see \code{\link{crf_options}} and the \code{options} argument of \code{\link{crf}}), you can use the \code{caret} package. \cr
+#' In order to facilitate this tuning, an object called \code{crf_caretmethod} has been made available. 
+#' The object \code{crf_caretmethod} is a list with 6 elements, where each of these 6 elements can be used in 
+#' tuning the CRF hyperparemeters by passing it on to the \code{method} argument of the \code{train} function of the \code{caret} package.\cr
+#' The list has elements 'default', 'lbfgs', 'l2sgd', 'averaged_perceptron', 'passive_aggressive' and 'arow'.
+#' Each list element corresponds to arguments that you need to tune for each \code{method} as used in \code{\link{crf}}. \cr
+#' For \code{crf_caretmethod}
+#' \enumerate{
+#' \item lbfgs: Tuning across all hyperparameters for method lbfgs: L-BFGS with L1/L2 regularization
+#' \item l2sgd: Tuning across all hyperparameters for method l2sgd: SGD with L2-regularization
+#' \item averaged_perceptron: Tuning across all hyperparameters for method averaged-perceptron: Averaged Perceptron
+#' \item passive_aggressive: Tuning across all hyperparameters for method passive-aggressive: Passive Aggressive
+#' \item arow: Tuning across all hyperparameters for method arow: Adaptive Regularization of Weights (AROW)
+#' \item default: Tune over the hyperparameters feature.minfreq, feature.possible_states, feature.possible_transitions, max_iterations. While tuning these, it uses the default hyperparameters for each method. This tuning allows you to compare the 5 methods.
+#' }
+#' For details on the hyperparameter definitions: see \code{\link{crf_options}}
+crf_caretmethod <- list(
+  default = list(library = "crfsuite", type = "Classification", 
+                 parameters = data.frame(parameter = c("method", "feature.minfreq", "feature.possible_states", "feature.possible_transitions", "max_iterations"), 
+                                         class = c("character", "integer", "logical", "logical", "integer"), 
+                                         label = c("Training method", "The minimum frequency of features.", "Generate all possible state features", "Generate all possible transition features", "Maximum number of iterations"),
+                                         stringsAsFactors = FALSE),
+                 grid = function(x, y, len = NULL, search = "grid") .NotYetImplemented(),
+                 fit = function(x, y, wts, param, lev, last, weights, classProbs, ...){
+                   opts <- crf_options(method = param$method)$default
+                   if(length(intersect("method", names(param))) == 0) stop("method should always be one of the arguments")
+                   extraparams <- setdiff(names(param), "method")
+                   extraparams <- intersect(extraparams, names(opts))
+                   opts[extraparams] <- param[extraparams]
+                   cat(sprintf("%s - building model for setting: %s, %s", Sys.time(), param$method, paste(mapply(extraparams, param[extraparams], FUN=function(key, value) paste(key, value, sep = "=")), collapse = ", ")), sep = "\n")
+                   crf(x = x[, -1], y = as.character(y), group = x[, 1], method = param$method, options = opts, ...)
+                 },
+                 predict = function(modelFit, newdata, submodels = NULL){
+                   predict(modelFit, newdata = newdata[, -1], group = newdata[, 1], type = "marginal")$label
+                 },
+                 prob = NULL)
+)
+crf_caretmethod$lbfgs <- crf_caretmethod$default
+crf_caretmethod$l2sgd <- crf_caretmethod$default
+crf_caretmethod$averaged_perceptron <- crf_caretmethod$default
+crf_caretmethod$passive_aggressive <- crf_caretmethod$default
+crf_caretmethod$arow <- crf_caretmethod$default
+crf_caretmethod$lbfgs$parameters <- data.frame(parameter = c("method", 
+                                                             "feature.minfreq", "feature.possible_states", "feature.possible_transitions", 
+                                                             "c1", "c2", "max_iterations", "num_memories", "epsilon", "period", 
+                                                             "delta", "linesearch", "max_linesearch"), 
+                                               class = c("character", "integer", "logical", "logical", "numeric", "numeric", "integer", "integer", "numeric", "integer", "numeric", "character", "integer"), 
+                                               label = c("Training method", 
+                                                         "The minimum frequency of features.", "Force to generate possible state features.", 
+                                                         "Force to generate possible transition features.", "Coefficient for L1 regularization.", 
+                                                         "Coefficient for L2 regularization.", "The maximum number of iterations for L-BFGS optimization.", 
+                                                         "The number of limited memories for approximating the inverse hessian matrix.", 
+                                                         "Epsilon for testing the convergence of the objective.", "The duration of iterations to test the stopping criterion.", 
+                                                         "The threshold for the stopping criterion; an L-BFGS iteration stops when the\nimprovement of the log likelihood over the last ${period} iterations is no\ngreater than this threshold.", 
+                                                         "The line search algorithm used in L-BFGS updates:\n{   'MoreThuente': More and Thuente's method,\n    'Backtracking': Backtracking method with regular Wolfe condition,\n    'StrongBacktracking': Backtracking method with strong Wolfe condition\n}\n", 
+                                                         "The maximum number of trials for the line search algorithm."),
+                                               stringsAsFactors = FALSE)
+
+crf_caretmethod$l2sgd$parameters <- data.frame(parameter = c("method", 
+                                                             "feature.minfreq", "feature.possible_states", "feature.possible_transitions", 
+                                                             "c2", "max_iterations", "period", "delta", "calibration.eta", 
+                                                             "calibration.rate", "calibration.samples", "calibration.candidates", 
+                                                             "calibration.max_trials"), 
+                                               class = c("character", "integer", "logical", "logical", "numeric", "integer", "integer", "numeric", "numeric", "numeric", "integer", "integer", "integer"), 
+                                               label = c("Training method", 
+                                                         "The minimum frequency of features.", "Force to generate possible state features.", 
+                                                         "Force to generate possible transition features.", "Coefficient for L2 regularization.", 
+                                                         "The maximum number of iterations (epochs) for SGD optimization.", 
+                                                         "The duration of iterations to test the stopping criterion.", 
+                                                         "The threshold for the stopping criterion; an optimization process stops when\nthe improvement of the log likelihood over the last ${period} iterations is no\ngreater than this threshold.", 
+                                                         "The initial value of learning rate (eta) used for calibration.", 
+                                                         "The rate of increase/decrease of learning rate for calibration.", 
+                                                         "The number of instances used for calibration.", "The number of candidates of learning rate.", 
+                                                         "The maximum number of trials of learning rates for calibration."),
+                                               stringsAsFactors = FALSE)
+crf_caretmethod$averaged_perceptron$parameters <- data.frame(parameter = c("method", 
+                                                                           "feature.minfreq", "feature.possible_states", "feature.possible_transitions", 
+                                                                           "max_iterations", "epsilon"), 
+                                                             class = c("character", "integer", "logical", "logical", "integer", "numeric"), 
+                                                             label = c("Training method", 
+                                                                       "The minimum frequency of features.", "Force to generate possible state features.", 
+                                                                       "Force to generate possible transition features.", "The maximum number of iterations.", 
+                                                                       "The stopping criterion (the ratio of incorrect label predictions)."),
+                                                             stringsAsFactors = FALSE)
+crf_caretmethod$passive_aggressive$parameters <- data.frame(parameter = c("method", 
+                                                                          "feature.minfreq", "feature.possible_states", "feature.possible_transitions", 
+                                                                          "type", "c", "error_sensitive", "averaging", "max_iterations", 
+                                                                          "epsilon"), 
+                                                            class = c("character", "integer", "logical", "logical", "integer", "logical", "logical", "logical", "integer", "numeric"), 
+                                                            label = c("Training method", 
+                                                                      "The minimum frequency of features.", "Force to generate possible state features.", 
+                                                                      "Force to generate possible transition features.", "The strategy for updating feature weights: {\n    0: PA without slack variables,\n    1: PA type I,\n    2: PA type II\n}.\n", 
+                                                                      "The aggressiveness parameter.", "Consider the number of incorrect labels to the cost function.", 
+                                                                      "Compute the average of feature weights (similarly to Averaged Perceptron).", 
+                                                                      "The maximum number of iterations.", "The stopping criterion (the mean loss)."),
+                                                            stringsAsFactors = FALSE)
+crf_caretmethod$arow$parameters <- data.frame(parameter = c("method", 
+                                                            "feature.minfreq", "feature.possible_states", "feature.possible_transitions", 
+                                                            "variance", "gamma", "max_iterations", "epsilon"), 
+                                              class = c("character", "integer", "logical", "logical", "numeric", "numeric", "integer", "numeric"), 
+                                              label = c("Training method", 
+                                                        "The minimum frequency of features.", "Force to generate possible state features.", 
+                                                        "Force to generate possible transition features.", "The initial variance of every feature weight.", 
+                                                        "Tradeoff parameter.", "The maximum number of iterations.", "The stopping criterion (the mean loss)."),
+                                              stringsAsFactors = FALSE)
