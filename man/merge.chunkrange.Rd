@@ -4,8 +4,7 @@
 \alias{merge.chunkrange}
 \title{CRF Training data construction: add chunk entity category to a tokenised dataset}
 \usage{
-\method{merge}{chunkrange}(x, y, by.x = "doc_id", by.y = "doc_id",
-  default_entity = "O", ...)
+\method{merge}{chunkrange}(x, y, by.x = "doc_id", by.y = "doc_id", default_entity = "O", ...)
 }
 \arguments{
 \item{x}{an object of class \code{chunkrange}. A \code{chunkrange} is just a data.frame which contains 
@@ -42,7 +41,7 @@ where the token is found in the text of the document, this function allows to as
 of the document.
 }
 \examples{
-\dontrun{
+\donttest{
 library(udpipe)
 udmodel <- udpipe_download_model("dutch-lassysmall")
 if(packageVersion("udpipe") >= "0.7"){

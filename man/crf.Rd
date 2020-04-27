@@ -4,9 +4,17 @@
 \alias{crf}
 \title{Linear-chain Conditional Random Field}
 \usage{
-crf(x, y, group, method = c("lbfgs", "l2sgd", "averaged-perceptron",
-  "passive-aggressive", "arow"), options = crf_options(method)$default,
-  file = "annotator.crfsuite", trace = FALSE, FUN = identity, ...)
+crf(
+  x,
+  y,
+  group,
+  method = c("lbfgs", "l2sgd", "averaged-perceptron", "passive-aggressive", "arow"),
+  options = crf_options(method)$default,
+  file = "annotator.crfsuite",
+  trace = FALSE,
+  FUN = identity,
+  ...
+)
 }
 \arguments{
 \item{x}{a character matrix of data containing attributes about the label sequence \code{y} or an object which can be coerced to a character matrix.
@@ -54,7 +62,7 @@ Fits a Linear-chain (first-order Markov) CRF on the provided label sequence and 
 }
 \examples{
 ## Download modeldata (conll 2002 shared task in Dutch)
-\dontrun{
+\donttest{
 x         <- ner_download_modeldata("conll2002-nl")
 }
 # for CRAN only - word on a subset of the data
@@ -90,7 +98,7 @@ if(is.data.frame(x)){
   if(file.exists(model$file_model)) file.remove(model$file_model)
   if(file.exists("modeldetails.txt")) file.remove("modeldetails.txt")
 }
-\dontrun{
+\donttest{
 ##
 ## More detailed example where text data was annotated with the webapp in the package
 ## This data is joined with a tokenised dataset to construct the training data which

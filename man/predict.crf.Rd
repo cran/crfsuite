@@ -4,8 +4,14 @@
 \alias{predict.crf}
 \title{Predict the label sequence based on the Conditional Random Field}
 \usage{
-\method{predict}{crf}(object, newdata, group, type = c("marginal",
-  "sequence"), trace = FALSE, ...)
+\method{predict}{crf}(
+  object,
+  newdata,
+  group,
+  type = c("marginal", "sequence"),
+  trace = FALSE,
+  ...
+)
 }
 \arguments{
 \item{object}{an object of class crf as returned by \code{\link{crf}}}
@@ -29,7 +35,7 @@ If \code{type} is 'sequence': a data.frame with columns group and probability co
 Predict the label sequence based on the Conditional Random Field
 }
 \examples{
-\dontrun{
+\donttest{
 library(udpipe)
 data(airbnb_chunks, package = "crfsuite")
 udmodel <- udpipe_download_model("dutch-lassysmall")

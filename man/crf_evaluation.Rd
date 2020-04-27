@@ -4,8 +4,12 @@
 \alias{crf_evaluation}
 \title{Basic classification evaluation metrics for multi-class labelling}
 \usage{
-crf_evaluation(pred, obs, labels = na.exclude(unique(c(as.character(pred),
-  as.character(obs)))), labels_overall = setdiff(labels, "O"))
+crf_evaluation(
+  pred,
+  obs,
+  labels = na.exclude(unique(c(as.character(pred), as.character(obs)))),
+  labels_overall = setdiff(labels, "O")
+)
 }
 \arguments{
 \item{pred}{a factor with predictions}
@@ -37,7 +41,7 @@ pred <- sample(LETTERS, 1000, replace = TRUE)
 gold <- sample(LETTERS, 1000, replace = TRUE)
 crf_evaluation(pred = pred, obs = gold, labels = LETTERS) 
 
-\dontrun{
+\donttest{
 x <- ner_download_modeldata("conll2002-nl")
 x <- crf_cbind_attributes(x, terms = c("token", "pos"), 
                           by = c("doc_id", "sentence_id"))
