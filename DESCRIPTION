@@ -2,7 +2,7 @@ Package: crfsuite
 Type: Package
 Title: Conditional Random Fields for Labelling Sequential Data in
         Natural Language Processing
-Version: 0.3.4
+Version: 0.4
 Maintainer: Jan Wijffels <jwijffels@bnosac.be>
 Authors@R: c(
     person('Jan', 'Wijffels', role = c('aut', 'cre', 'cph'), email = 'jwijffels@bnosac.be', comment = "R wrapper"), 
@@ -25,7 +25,7 @@ LinkingTo: Rcpp
 RoxygenNote: 7.1.1
 VignetteBuilder: knitr
 NeedsCompilation: yes
-Packaged: 2020-10-10 20:18:11 UTC; jwijffels
+Packaged: 2021-11-12 21:11:54 UTC; Jan
 Author: Jan Wijffels [aut, cre, cph] (R wrapper),
   BNOSAC [cph] (R wrapper),
   Naoaki Okazaki [aut, ctb, cph] (CRFsuite library (BSD licensed),
@@ -35,4 +35,4 @@ Author: Jan Wijffels [aut, cre, cph] (R wrapper),
   Jorge Nocedal [aut, ctb, cph] (libLBFGS library (MIT licensed)),
   Jesse Long [aut, ctb, cph] (RumAVL library (MIT licensed))
 Repository: CRAN
-Date/Publication: 2020-10-10 21:50:05 UTC
+Date/Publication: 2021-11-12 21:50:02 UTC

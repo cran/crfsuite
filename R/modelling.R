@@ -13,6 +13,7 @@
 #'  \item{arow: }{Adaptive Regularization of Weights (AROW)}
 #' }
 #' @param options a list of options to provide to the training algorithm. See \code{\link{crf_options}} for possible options and the example below on how to provide them.
+#' @param embeddings a matrix with the same number of rows as \code{x} and in the same order with numeric information used in model building (experimental)
 #' @param file a character string with the path to the file on disk where the CRF model will be stored.
 #' @param trace a logical indicating to show the trace of the training output. Defaults to \code{FALSE}.
 #' @param FUN a function which can be applied on raw text in order to obtain the attribute matrix used in \code{predict.crf}. Currently not used yet.
@@ -55,7 +56,10 @@
 #'                options = list(max_iterations = 3, feature.minfreq = 5, 
 #'                               c1 = 0, c2 = 1)) 
 #'   model
-#'   stats <- summary(model, "modeldetails.txt")
+#'   weights <- coefficients(model)
+#'   head(weights$states, n = 20)
+#'   head(weights$transitions, n = 20)
+#'   stats   <- summary(model, "modeldetails.txt")
 #'   stats
 #'   plot(stats$iterations$loss)
 #' 
@@ -103,6 +107,7 @@
 crf <- function(x, y, group, 
                 method = c("lbfgs", "l2sgd", "averaged-perceptron", "passive-aggressive", "arow"), 
                 options = crf_options(method)$default, 
+                embeddings,
                 file = "annotator.crfsuite", trace = FALSE, FUN = identity, ...){
   type <- "crf1d"
   file <- normalizePath(path.expand(file), mustWork = FALSE)
@@ -123,10 +128,19 @@ crf <- function(x, y, group,
     cat(sprintf("CRFsuite training progress logged to file %s", f), sep = "\n")
   }
   on.exit(file.remove(f))
+  if(missing(embeddings)){
+    embeddings <- matrix(numeric(), nrow = 0, ncol = 0)
+  }else{
+    embeddings <- as.matrix(embeddings)
+    stopifnot(nrow(embeddings) == nrow(x))
+    if(is.null(colnames(embeddings))){
+      colnames(embeddings) <- sprintf("embedding_dim%s", seq_len(ncol(embeddings)))
+    }
+  }
   model <- crfsuite_model_build(file_model = file, 
-                       doc_id = group, y = y, x = x,
-                       options = options, method = method, type = type,
-                       trace = trace)
+                                doc_id = group, y = y, x = x, embeddings = embeddings,
+                                options = options, method = method, type = type,
+                                trace = trace)
   model$attribute_names <- colnames(x)
   model$log <- readLines(f)
   model$FUN <- FUN
@@ -166,15 +180,13 @@ print.crf <- function(x, ...){
   cat(sprintf("  size of the model in Mb: %s", round(fsize / (2^20), 2)), sep = "\n")
   cat(sprintf("  number of categories: %s", length(x$labels)), sep = "\n")
   cat(sprintf("  category labels: %s", paste(x$labels, collapse = ", ")), sep = "\n")
-  cat(sprintf("To inspect the model in detail, summary(yourmodel, 'modeldetails.txt') and inspect the modeldetails.txt file", 
-              deparse(substitute(x))), sep = "\n")
 }
 
 
 #' @export
 summary.crf <- function(object, file, ...){
   stopifnot(file.exists(object$file_model))
-
+  
   out <- list()
   out$active <- list()
   out$active$features <- as.numeric(gsub("(^Number of active features: )(.+) (.+)$", "\\2", grep("^Number of active features: ", object$log, value = TRUE)))
@@ -219,6 +231,7 @@ summary.crf <- function(object, file, ...){
 #' @param object an object of class crf as returned by \code{\link{crf}}
 #' @param newdata a character matrix of data containing attributes about the label sequence \code{y} or an object which can be coerced to a character matrix. 
 #' This data should be provided in the same format as was used for training the model
+#' @param embeddings a matrix with the same number of rows as \code{x} and in the same order with numeric information used to predict
 #' @param group an integer or character vector of the same length as nrow \code{newdata} indicating the group the sequence \code{y} belongs to (e.g. a document or sentence identifier) 
 #' @param type either 'marginal' or 'sequence' to get predictions at the level of \code{newdata} or a the level of the sequence \code{group}. Defaults to \code{'marginal'}
 #' @param trace a logical indicating to show the trace of the labelling output. Defaults to \code{FALSE}.
@@ -262,7 +275,7 @@ summary.crf <- function(object, file, ...){
 #' file.remove(udmodel$file)
 #' \dontshow{\} # End of main if statement running only if the required packages are installed}
 #' }
-predict.crf <- function(object, newdata, group, type = c("marginal", "sequence"), trace = FALSE, ...){
+predict.crf <- function(object, newdata, embeddings, group, type = c("marginal", "sequence"), trace = FALSE, ...){
   stopifnot(file.exists(object$file_model))
   trace <- as.integer(trace)
   newdata <- as.matrix(newdata)
@@ -276,7 +289,16 @@ predict.crf <- function(object, newdata, group, type = c("marginal", "sequence")
   }else{
     recodegroup <- FALSE
   }
-  scores <- crfsuite_predict(file_model = object$file_model, doc_id = group, x = newdata, trace = trace)
+  if(missing(embeddings)){
+    embeddings <- matrix(numeric(), nrow = 0, ncol = 0)
+  }else{
+    embeddings <- as.matrix(embeddings)
+    stopifnot(nrow(embeddings) == nrow(newdata))
+    if(is.null(colnames(embeddings))){
+      colnames(embeddings) <- sprintf("embedding_dim%s", seq_len(ncol(embeddings)))
+    }
+  }
+  scores <- crfsuite_predict(file_model = object$file_model, doc_id = group, x = newdata, embeddings = embeddings, trace = trace)
   if(type == "marginal"){
     scores <- scores$viterbi
   }else if(type == "sequence"){

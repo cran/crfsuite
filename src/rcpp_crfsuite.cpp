@@ -1,5 +1,5 @@
-#include <crfsuite.hpp>
 #include <Rcpp.h>
+#include <crfsuite.hpp>
 
 // [[Rcpp::export]]
 Rcpp::List crfsuite_copyright(){
@@ -43,6 +43,7 @@ Rcpp::List crfsuite_model_build(const char* file_model,
                                 const std::vector<int> doc_id, 
                                 const std::vector<std::string> y, 
                                 Rcpp::CharacterMatrix x,
+                                Rcpp::NumericMatrix embeddings,
                                 Rcpp::List options,
                                 const std::string method = "lbfgs", 
                                 const std::string type = "crf1d",
@@ -85,6 +86,15 @@ Rcpp::List crfsuite_model_build(const char* file_model,
       for(int j=0; j<nfeatures; j++) {  
         if(!Rcpp::CharacterVector::is_na(x(i, j))){
           termfeatures.push_back(CRFSuite::Attribute(std::string(x(i, j)), 1.));  
+        }
+      }
+      if(embeddings.nrow() > 0){
+        Rcpp::CharacterVector fields = colnames(embeddings);
+        for(int j=0; j<(embeddings.ncol()); j++) {  
+          std::string field = Rcpp::as<std::string>(fields[j]);
+          if(!Rcpp::NumericVector::is_na(embeddings(i, j))){
+            termfeatures.push_back(CRFSuite::Attribute(field, embeddings(i, j)));  
+          }
         }
       }
       termsequenceattributes.push_back(termfeatures);
@@ -153,9 +163,20 @@ void crfsuite_model_dump(const char* file_model, const char* file_txt){
 
 
 // [[Rcpp::export]]
+Rcpp::List crfsuite_model_coefficients(const char* file_model){
+  crfsuite_model_t *model = NULL;
+  crfsuite_create_instance_from_file(file_model, (void**)&model);
+  SEXP coefficients = model->dump_coefficients(model);
+  Rcpp::List out(coefficients);
+  model->release(model);
+  return out;
+}
+
+// [[Rcpp::export]]
 Rcpp::List crfsuite_predict(const std::string file_model, 
                             const std::vector<int> doc_id, 
                             Rcpp::CharacterMatrix x,
+                            Rcpp::NumericMatrix embeddings,
                             int trace = 0){
   std::vector<std::string> labels;
   std::vector<double> marginal;
@@ -191,6 +212,15 @@ Rcpp::List crfsuite_predict(const std::string file_model,
       for(int j=0; j<nfeatures; j++) {  
         if(!Rcpp::CharacterVector::is_na(x(i, j))){
           termfeatures.push_back(CRFSuite::Attribute(std::string(x(i, j)), 1.));
+        }
+      }
+      if(embeddings.nrow() > 0){
+        Rcpp::CharacterVector fields = colnames(embeddings);
+        for(int j=0; j<(embeddings.ncol()); j++) {  
+          std::string field = Rcpp::as<std::string>(fields[j]);
+          if(!Rcpp::NumericVector::is_na(embeddings(i, j))){
+            termfeatures.push_back(CRFSuite::Attribute(field, embeddings(i, j)));  
+          }
         }
       }
       termsequenceattributes.push_back(termfeatures);

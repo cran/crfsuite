@@ -9,8 +9,8 @@ crfsuite_model_parameters <- function(method, type = "crf1d") {
     .Call('_crfsuite_crfsuite_model_parameters', PACKAGE = 'crfsuite', method, type)
 }
 
-crfsuite_model_build <- function(file_model, doc_id, y, x, options, method = "lbfgs", type = "crf1d", trace = 0L) {
-    .Call('_crfsuite_crfsuite_model_build', PACKAGE = 'crfsuite', file_model, doc_id, y, x, options, method, type, trace)
+crfsuite_model_build <- function(file_model, doc_id, y, x, embeddings, options, method = "lbfgs", type = "crf1d", trace = 0L) {
+    .Call('_crfsuite_crfsuite_model_build', PACKAGE = 'crfsuite', file_model, doc_id, y, x, embeddings, options, method, type, trace)
 }
 
 crfsuite_model <- function(file_model) {
@@ -21,7 +21,11 @@ crfsuite_model_dump <- function(file_model, file_txt) {
     invisible(.Call('_crfsuite_crfsuite_model_dump', PACKAGE = 'crfsuite', file_model, file_txt))
 }
 
-crfsuite_predict <- function(file_model, doc_id, x, trace = 0L) {
-    .Call('_crfsuite_crfsuite_predict', PACKAGE = 'crfsuite', file_model, doc_id, x, trace)
+crfsuite_model_coefficients <- function(file_model) {
+    .Call('_crfsuite_crfsuite_model_coefficients', PACKAGE = 'crfsuite', file_model)
+}
+
+crfsuite_predict <- function(file_model, doc_id, x, embeddings, trace = 0L) {
+    .Call('_crfsuite_crfsuite_predict', PACKAGE = 'crfsuite', file_model, doc_id, x, embeddings, trace)
 }
 
